@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 
-const subscriptionModel = new mongoose.Schema({
+const subscriptionSchema = new mongoose.Schema({
     name: {
         type: String,
         required: [true, "Name is required"],
@@ -23,8 +23,8 @@ const subscriptionModel = new mongoose.Schema({
 
     frequency: {
         type: String,
-        enum: ['Daily', 'Weekly', 'Monthly', 'Yearly'],
-        default: 'Monthly',
+        enum: ['daily', 'weekly', 'monthly', 'yearly'],
+        default: 'monthly',
     },
 
     category: {
@@ -74,3 +74,27 @@ const subscriptionModel = new mongoose.Schema({
     }
 
 }, {timestamps: true});
+
+subscriptionSchema.pre("save", async function (next) {
+    if(!this.renewalDate){
+        const renewalPeriod = {
+            daily: 1,
+            weekly: 7,
+            monthly: 30,
+            yearly: 365,
+        };
+
+        this.renewalDate = new Date(this.startDate);
+        this.renewalDate.setDate(this.renewalDate.getDate() + renewalPeriod[this.frequency]);
+    }
+
+    if(this.renewalDate < new Date()){
+        this.status = "expired";
+    }
+
+    next();
+})
+
+const Subscription = mongoose.model("Subscription", subscriptionSchema);
+
+export default Subscription;
