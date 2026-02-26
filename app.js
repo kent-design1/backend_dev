@@ -1,4 +1,4 @@
-import express, {json} from "express";
+import express from "express";
 
 import {PORT} from "./env.js";
 import authRouter from "./routes/auth.route.js";
@@ -9,14 +9,17 @@ import cookieParser from "cookie-parser";
 
 const app = express();
 
-app.use('/api/auth', authRouter);
-app.use('/api/userRoutes', userRouter);
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 
 app.use(errorMiddleware);
+
+app.use('/api/auth', authRouter);
+app.use('/api/users', userRouter);
+
+
 
 
 app.get("/", (req, res) => {
